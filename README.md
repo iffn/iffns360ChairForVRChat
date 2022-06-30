@@ -18,3 +18,5 @@ If you have manually added it, use this one first. (I recommend to close the Uni
 ```
 git rm Assets/iffns360ChairForVRChat -r
 ```
+
+![image](https://user-images.githubusercontent.com/18383974/176571999-c1894a3e-4877-447b-8fa9-91ea06a9c440.png)
