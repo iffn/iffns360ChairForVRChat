@@ -1,6 +1,7 @@
 # iffns360ChairForVRChat
-A script that allows desktop players to turn 180° in either direction.
-Especially usefull in SaccFlight vehicles. Attach to the station and set the appropriate HeadXOffset value.
+A script that allows desktop players to turn 180° in either direction. Does not affect VR players.
+Especially usefull in SaccFlightAndVehicles. Attach to the station and set the appropriate HeadXOffset value.
+Note: Client sim currently unaffected
  
 Requires VRChat SDK3 for Worlds, the compatible Unity version and UdonSharp 0.20.3 or higher.
 

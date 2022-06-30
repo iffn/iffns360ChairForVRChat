@@ -9,6 +9,8 @@ namespace iffnsStuff.iffnsVRCStuff
     public class iffns360Chair : UdonSharpBehaviour
     {
         //Variable assignment
+        [Header("Note: Client sim currently unaffected", order = 0)]
+        [Header("Sets the side movement to look over your shoulders:", order = 1)]
         [SerializeField] float HeadXOffset = 0.25f;
 
         //Runtime variables
