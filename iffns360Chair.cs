@@ -16,12 +16,15 @@ namespace iffnsStuff.iffnsVRCStuff
         //Runtime variables
         Transform seatTransform;
         VRCPlayerApi seatedPlayer;
+        float initialXOffset;
 
         private void Start()
         {
             VRCStation station = (VRCStation)GetComponent(typeof(VRCStation));
 
             seatTransform = station.stationEnterPlayerLocation;
+
+            initialXOffset = seatTransform.localPosition.x;
         }
 
         public override void OnStationEntered(VRCPlayerApi player)
@@ -33,6 +36,7 @@ namespace iffnsStuff.iffnsVRCStuff
         {
             seatedPlayer = null;
             seatTransform.localRotation = Quaternion.identity;
+            seatTransform.localPosition = new Vector3(initialXOffset, seatTransform.localPosition.y, seatTransform.localPosition.z);
         }
 
         public float Remap(float iMin, float iMax, float oMin, float oMax, float iValue)
@@ -46,6 +50,7 @@ namespace iffnsStuff.iffnsVRCStuff
             if (seatedPlayer == null) return;
             if (seatedPlayer.IsUserInVR()) return;
 
+            //Rotation:
             Quaternion headRotation = seatedPlayer.GetBoneRotation(HumanBodyBones.Head);
 
             Quaternion relativeHeadRotation = Quaternion.Inverse(seatTransform.rotation) * headRotation;
@@ -56,8 +61,7 @@ namespace iffnsStuff.iffnsVRCStuff
 
             seatTransform.localRotation = Quaternion.Euler(headHeading * Vector3.up);
 
-            //Fix offset
-
+            //Offset:
             float xOffset = 0;
 
             if (headHeading > 45 && headHeading < 180)
@@ -70,7 +74,7 @@ namespace iffnsStuff.iffnsVRCStuff
             }
             //Debug.Log($"{headHeading} -> {xOffset}");
 
-            seatTransform.localPosition = new Vector3(xOffset, seatTransform.localPosition.y, seatTransform.localPosition.z);
+            seatTransform.localPosition = new Vector3(initialXOffset + xOffset, seatTransform.localPosition.y, seatTransform.localPosition.z);
         }
     }
 }
