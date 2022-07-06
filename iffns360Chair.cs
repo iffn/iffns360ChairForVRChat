@@ -9,14 +9,18 @@ namespace iffnsStuff.iffnsVRCStuff
     public class iffns360Chair : UdonSharpBehaviour
     {
         //Variable assignment
-        [Header("Note: Client sim currently unaffected", order = 0)]
-        [Header("Sets the side movement to look over your shoulders:", order = 1)]
+        [Header("Sets the side movement to look over your shoulders:")]
         [SerializeField] float HeadXOffset = 0.25f;
 
         //Runtime variables
         Transform seatTransform;
-        VRCPlayerApi seatedPlayer;
         float initialXOffset;
+
+        #if UNITY_EDITOR
+        public bool isSeated = false;
+        #else
+        VRCPlayerApi seatedPlayer;
+        #endif
 
         private void Start()
         {
@@ -29,14 +33,23 @@ namespace iffnsStuff.iffnsVRCStuff
 
         public override void OnStationEntered(VRCPlayerApi player)
         {
+            #if UNITY_EDITOR
+            isSeated = true;
+            #else
             seatedPlayer = player;
+            #endif
         }
 
         public override void OnStationExited(VRCPlayerApi player)
         {
-            seatedPlayer = null;
             seatTransform.localRotation = Quaternion.identity;
             seatTransform.localPosition = new Vector3(initialXOffset, seatTransform.localPosition.y, seatTransform.localPosition.z);
+            
+            #if UNITY_EDITOR
+            isSeated = false;
+            #else
+            seatedPlayer = null;
+            #endif
         }
 
         public float Remap(float iMin, float iMax, float oMin, float oMax, float iValue)
@@ -47,11 +60,22 @@ namespace iffnsStuff.iffnsVRCStuff
 
         private void Update()
         {
+            #if UNITY_EDITOR
+            if (!isSeated) return;
+            #else
             if (seatedPlayer == null) return;
             if (seatedPlayer.IsUserInVR()) return;
+            #endif
+
+            Quaternion headRotation;
 
             //Rotation:
-            Quaternion headRotation = seatedPlayer.GetBoneRotation(HumanBodyBones.Head);
+            #if UNITY_EDITOR
+            headRotation = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).rotation;
+            #else
+            headRotation = seatedPlayer.GetBoneRotation(HumanBodyBones.Head);
+            #endif
+
 
             Quaternion relativeHeadRotation = Quaternion.Inverse(seatTransform.rotation) * headRotation;
 
