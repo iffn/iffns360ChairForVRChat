@@ -60,12 +60,24 @@ namespace iffnsStuff.iffnsVRCStuff
 
         private void Update()
         {
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+
+            double setupTime = 0;
+            double calculateRotation = 0;
+            double applyRotation = 0;
+            double calculateOffset = 0;
+            double applyOffset = 0;
+
+            sw.Start();
             #if UNITY_EDITOR
             if (!isSeated) return;
             #else
             if (seatedPlayer == null) return;
             if (seatedPlayer.IsUserInVR()) return;
             #endif
+            sw.Stop();
+            setupTime = sw.Elapsed.TotalSeconds;
+            sw.Restart();
 
             Quaternion headRotation;
 
@@ -82,8 +94,16 @@ namespace iffnsStuff.iffnsVRCStuff
             float headHeading = relativeHeadRotation.eulerAngles.y;
 
             //Debug.Log(headRotation.eulerAngles + " - " + transform.rotation.eulerAngles);
+            
+            sw.Stop();
+            calculateRotation = sw.Elapsed.TotalSeconds;
+            sw.Restart();
 
             seatTransform.localRotation = Quaternion.Euler(headHeading * Vector3.up);
+
+            sw.Stop();
+            applyRotation = sw.Elapsed.TotalSeconds;
+            sw.Restart();
 
             //Offset:
             float xOffset = 0;
@@ -98,7 +118,17 @@ namespace iffnsStuff.iffnsVRCStuff
             }
             //Debug.Log($"{headHeading} -> {xOffset}");
 
+            sw.Stop();
+            calculateOffset = sw.Elapsed.TotalSeconds;
+            sw.Restart();
+
             seatTransform.localPosition = new Vector3(initialXOffset + xOffset, seatTransform.localPosition.y, seatTransform.localPosition.z);
+
+            sw.Stop();
+            applyOffset = sw.Elapsed.TotalSeconds;
+            sw.Restart();
+
+            Debug.Log($"Setup: {setupTime * 1000000}, Calc rot: {calculateRotation * 1000000}, Apply rot: {applyRotation * 1000000}, Calc off: {calculateOffset * 1000000}, Apply rot: {applyOffset * 1000000}");
         }
     }
 }
