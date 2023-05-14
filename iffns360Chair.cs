@@ -11,7 +11,7 @@ namespace iffnsStuff.iffnsVRCStuff
     public class iffns360Chair : UdonSharpBehaviour
     {
         //Variable assignment
-        [HelpBox("Note: It is recommended to set the Player Enter Location of the attached station, since the chair will otherwise also rotate.", order = 0)]
+        [HelpBox("Note: It is recommended to set the Player Enter Location of the attached station to a sepparate object, since the chair will otherwise also rotate.", order = 0)]
         [Header("Sets the side movement to look over your shoulders:", order = 1)]
         [SerializeField] float HeadXOffset = 0.25f;
 
