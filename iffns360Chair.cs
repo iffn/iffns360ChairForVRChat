@@ -1,7 +1,9 @@
 ﻿using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
+using VRC.SDKBase.Editor.Attributes;
 using VRC.Udon;
+using VRC.Udon.Common;
 
 namespace iffnsStuff.iffnsVRCStuff
 {
@@ -9,47 +11,53 @@ namespace iffnsStuff.iffnsVRCStuff
     public class iffns360Chair : UdonSharpBehaviour
     {
         //Variable assignment
-        [Header("Sets the side movement to look over your shoulders:")]
+        [HelpBox("Note: It is recommended to set the Player Enter Location of the attached station, since the chair will otherwise also rotate.", order = 0)]
+        [Header("Sets the side movement to look over your shoulders:", order = 1)]
         [SerializeField] float HeadXOffset = 0.25f;
 
         //Runtime variables
         Transform seatTransform;
-        float initialXOffset;
 
-        #if UNITY_EDITOR
-        public bool isSeated = false;
-        #else
-        VRCPlayerApi seatedPlayer;
-        #endif
+        Vector3 initialPosition = Vector3.zero;
+        Quaternion initialRotaiton = Quaternion.identity;
+
+        public VRCStation LinkedStation { get; private set; }
+        public VRCPlayerApi SeatedPlayer { get; private set; }
 
         private void Start()
         {
-            VRCStation station = (VRCStation)GetComponent(typeof(VRCStation));
+            LinkedStation = (VRCStation)GetComponent(typeof(VRCStation));
 
-            seatTransform = station.stationEnterPlayerLocation;
+            if (LinkedStation.stationEnterPlayerLocation == null) LinkedStation.stationEnterPlayerLocation = transform;
+            if (LinkedStation.stationExitPlayerLocation == null) LinkedStation.stationExitPlayerLocation = transform;
 
-            initialXOffset = seatTransform.localPosition.x;
+            seatTransform = LinkedStation.stationEnterPlayerLocation;
+
+            if(seatTransform == null)
+            {
+                Debug.Log("stationEnterPlayerLocation = null");
+                return;
+            }
+
+            initialPosition = seatTransform.localPosition;
+            initialRotaiton = seatTransform.localRotation;
         }
 
         public override void OnStationEntered(VRCPlayerApi player)
         {
-            #if UNITY_EDITOR
-            isSeated = true;
-            #else
-            seatedPlayer = player;
-            #endif
+            SeatedPlayer = player;
+
+            if (LinkedStation.PlayerMobility == VRCStation.Mobility.Mobile) return;
+
+            initialPosition = seatTransform.localPosition;
+            initialRotaiton = seatTransform.localRotation;
         }
 
         public override void OnStationExited(VRCPlayerApi player)
         {
-            seatTransform.localRotation = Quaternion.identity;
-            seatTransform.localPosition = new Vector3(initialXOffset, seatTransform.localPosition.y, seatTransform.localPosition.z);
-            
-            #if UNITY_EDITOR
-            isSeated = false;
-            #else
-            seatedPlayer = null;
-            #endif
+            SeatedPlayer = null;
+            seatTransform.localPosition = initialPosition;
+            seatTransform.localRotation = initialRotaiton;
         }
 
         public float Remap(float iMin, float iMax, float oMin, float oMax, float iValue)
@@ -60,12 +68,8 @@ namespace iffnsStuff.iffnsVRCStuff
 
         private void Update()
         {
-            #if UNITY_EDITOR
-            if (!isSeated) return;
-            #else
-            if (seatedPlayer == null) return;
-            if (seatedPlayer.IsUserInVR()) return;
-            #endif
+            if (SeatedPlayer == null || SeatedPlayer.IsUserInVR()) return;
+            if (LinkedStation.PlayerMobility == VRCStation.Mobility.Mobile) return;
 
             Quaternion headRotation;
 
@@ -73,9 +77,8 @@ namespace iffnsStuff.iffnsVRCStuff
             #if UNITY_EDITOR
             headRotation = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).rotation;
             #else
-            headRotation = seatedPlayer.GetBoneRotation(HumanBodyBones.Head);
+            headRotation = SeatedPlayer.GetBoneRotation(HumanBodyBones.Head);
             #endif
-
 
             Quaternion relativeHeadRotation = Quaternion.Inverse(seatTransform.rotation) * headRotation;
 
@@ -83,7 +86,7 @@ namespace iffnsStuff.iffnsVRCStuff
 
             //Debug.Log(headRotation.eulerAngles + " - " + transform.rotation.eulerAngles);
 
-            seatTransform.localRotation = Quaternion.Euler(headHeading * Vector3.up);
+            seatTransform.localRotation = Quaternion.Euler(headHeading * Vector3.up) * initialRotaiton;
 
             //Offset:
             float xOffset = 0;
@@ -98,7 +101,7 @@ namespace iffnsStuff.iffnsVRCStuff
             }
             //Debug.Log($"{headHeading} -> {xOffset}");
 
-            seatTransform.localPosition = new Vector3(initialXOffset + xOffset, seatTransform.localPosition.y, seatTransform.localPosition.z);
+            seatTransform.localPosition = initialPosition + xOffset * Vector3.right ;
         }
     }
 }
