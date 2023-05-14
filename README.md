@@ -9,7 +9,7 @@ https://github.com/Sacchan-VRC/SaccFlightAndVehicles/blob/603cc8afcd7c82b8f41f44
 
 ### How to use:
 - Requires VRChat SDK3 for Worlds, the compatible Unity version and UdonSharp.
-- Attach to the station and set the appropriate HeadXOffset value.
+- Attach the iffns360Chair.cs script to the station and set the appropriate HeadXOffset value.
 - Note: It is recommended to set the Player Enter Location of the attached station to a sepparate object, since the chair will otherwise also rotate.
 
 ### Integration without Submodules
